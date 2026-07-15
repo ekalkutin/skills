@@ -1,0 +1,10 @@
+name: typescript
+description: General TypeScript coding conventions.
+
+load_when:
+    - Editing .ts or .tsx files
+    - Writing TypeScript code
+    - Refactoring TypeScript
+
+requires: []
+priority: high
