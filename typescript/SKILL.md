@@ -1,22 +1,13 @@
+---
+name: typescript
+description: TypeScript explicit types, readability, and conventions for extensible code.
+---
+
 # TypeScript
 
 ## Rules
 
-- Prefer explicit types.
-- Never use `any`.
-- Prefer `readonly`.
-- Enable strict mode.
-
-## Good
-
-```ts
-interface User {
-    readonly id: string;
-}
-```
-
-## Bad
-
-```ts
-let user: any;
-```
+- Prefer `unknown` over `any` for unknown types
+- Explicit return types for public APIs
+- Use `const` assertions for literal types
+- Mark properties and parameters as `readonly` when appropriate
