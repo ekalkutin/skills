@@ -1,6 +1,6 @@
 ---
 name: backend
-description: "How backends are written here — a package per bounded context, layered domain/application/infrastructure/api, value objects as classes, aggregates, exceptions typed by layer, Prisma per context, and unit tests beside their source. Use when writing or reviewing any server-side TypeScript in this style: domain models, use cases, repositories, controllers, schemas, or their tests."
+description: "How backends are written here — a package per bounded context, layered domain/application/infrastructure/api, value objects as classes, aggregates, commands and queries that never chain, exceptions typed by layer, Prisma per context, and unit tests beside their source. Use when writing or reviewing any server-side TypeScript in this style: domain models, use cases, repositories, controllers, schemas, or their tests."
 ---
 
 # Backend
@@ -38,6 +38,11 @@ description: "How backends are written here — a package per bounded context, l
 - Events are added only from inside via the protected `apply`. `getUncommittedEvents()` reads without clearing, `commit()` clears without publishing — an aggregate never publishes anything itself.
 - Entities inside an aggregate are never loaded or saved on their own. Prefer immutable ones that return a new instance on change.
 
+### Commands and queries
+
+- **A command never dispatches another command, and a query never calls another query.** One request, one handler, no chains through the bus.
+- A command handler loads, delegates, saves and returns an id; a query reads through a port and never loads an aggregate. Neither holds a business rule — that is the aggregate's job.
+
 ### Exceptions
 
 - Three base classes, one per layer: **`DomainException`** (a business rule was refused), **`ApplicationException`** (the use case could not proceed — the aggregate named does not exist, the caller is not authenticated), **`InfrastructureException`** (the machinery failed).
@@ -55,6 +60,12 @@ description: "How backends are written here — a package per bounded context, l
 - No test doubles: build the thing, call the method, assert on what came back. **Never mock your own classes** — hand-written doubles are for the clock, the id generator and outbound calls, and nothing else.
 - Assert a refusal with `expect(() => …).toThrow(TheExceptionClass)`. Always name the class: a bare `toThrow()` also passes when the code throws for an unrelated reason.
 
+### Comments
+
+- **Obvious code gets no comment**, and most code here is obvious. A name that needs explaining is the wrong name — rename it, extract the method, or lift the condition into a value object. Same for tests: the test name is the sentence a comment wanted to be.
+- No JSDoc, no file headers, no section banners, no commented-out code. The signature already says what a doc block would repeat.
+- Comment only what the code cannot say — a workaround for someone else's bug, an order that looks arbitrary but is not. One line, above what it defends.
+
 ## Reference Guide
 
 Ordered as the rules above are.
@@ -64,6 +75,7 @@ Ordered as the rules above are.
 | Package and layer structure, contracts, naming  | [layout.md](./references/layout.md)               |
 | Writing a value object, id, or enumeration      | [value-objects.md](./references/value-objects.md) |
 | Writing an aggregate, its entities and events   | [aggregates.md](./references/aggregates.md)       |
+| Commands, queries and their handlers            | [cqrs.md](./references/cqrs.md)                   |
 | Exception classes, which layer each belongs to  | [exceptions.md](./references/exceptions.md)       |
 | Unit tests, builders, what may be doubled       | [testing.md](./references/testing.md)             |
 | Wiring a context to its database (Prisma)       | [prisma.md](./references/prisma.md)               |
@@ -73,7 +85,7 @@ Ordered as the rules above are.
 Deliberately absent rather than forgotten — ask before inventing a convention:
 
 - repositories and aggregate-to-table mappers
-- use case handlers and the command bus
+- the command bus itself and how a handler is registered
 - transaction handling
 - the transactional outbox and integration events
 - the api layer itself: controllers, the validation pipe, the exception filter and its `code → status` table
