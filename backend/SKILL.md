@@ -38,6 +38,12 @@ description: "How backends are written here — a package per bounded context, l
 - Events are added only from inside via the protected `apply`. `getUncommittedEvents()` reads without clearing, `commit()` clears without publishing — an aggregate never publishes anything itself.
 - Entities inside an aggregate are never loaded or saved on their own. Prefer immutable ones that return a new instance on change.
 
+### Domain events
+
+- An event's `payload()` returns primitives; value objects stop at the aggregate's edge. No timestamp — the database stamps one when the row is written.
+- The repository's `save()` is the only place events leave an aggregate: read them, write the state and the outbox row in **one transaction**, then `commit()` once it has resolved.
+- Nothing publishes inside that transaction. A relay reads unpublished rows on its own tick, so delivery is at-least-once and every subscriber is idempotent.
+
 ### Commands and queries
 
 - **A command never dispatches another command, and a query never calls another query.** One request, one handler, no chains through the bus.
@@ -75,6 +81,7 @@ Ordered as the rules above are.
 | Package and layer structure, contracts, naming  | [layout.md](./references/layout.md)               |
 | Writing a value object, id, or enumeration      | [value-objects.md](./references/value-objects.md) |
 | Writing an aggregate, its entities and events   | [aggregates.md](./references/aggregates.md)       |
+| Publishing events: outbox, relay, subscribers   | [domain-events.md](./references/domain-events.md) |
 | Commands, queries and their handlers            | [cqrs.md](./references/cqrs.md)                   |
 | Exception classes, which layer each belongs to  | [exceptions.md](./references/exceptions.md)       |
 | Unit tests, builders, what may be doubled       | [testing.md](./references/testing.md)             |
@@ -84,9 +91,8 @@ Ordered as the rules above are.
 
 Deliberately absent rather than forgotten — ask before inventing a convention:
 
-- repositories and aggregate-to-table mappers
+- aggregate-to-table mappers
 - the command bus itself and how a handler is registered
-- transaction handling
-- the transactional outbox and integration events
+- integration events: the contract that leaves the context, and its versioning
 - the api layer itself: controllers, the validation pipe, the exception filter and its `code → status` table
 - any test that is not a unit test
