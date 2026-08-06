@@ -1,6 +1,6 @@
 # Skills
 
-Agent skills: [backend](./backend), [react](./react), [typescript](./typescript).
+Agent skills: [backend](./backend), [monorepo](./monorepo), [react](./react), [typescript](./typescript).
 
 New skills start from [SKILL.template.md](./SKILL.template.md). [GUIDE.md](./GUIDE.md) keeps the links behind it. Most of the work happens in `backend` first; whatever survives there gets moved into the template.
 
@@ -14,6 +14,13 @@ New skills start from [SKILL.template.md](./SKILL.template.md). [GUIDE.md](./GUI
 - Exceptions typed by layer
 - Unit tests with no doubles
 - Prisma per context
+
+`monorepo` covers the repo `backend` sits in:
+
+- Shape: `apps/*` and `packages/*`, a private root, scoped names
+- pnpm workspaces: `workspace:*` edges, catalogs, install-script allowlist
+- One root tsconfig, two per package, `build/` out, no path aliases
+- nx: ordering off `^build`, caching that needs `cache` *and* `outputs`, continuous targets
 
 `react` and `typescript` are thinner: components and state for one, explicit types and readability for the other.
 
